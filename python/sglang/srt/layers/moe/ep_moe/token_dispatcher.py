@@ -23,34 +23,34 @@ _buffer_normal = None
 _buffer_low_latency = None
 
 
-def get_buffer_normal(group: dist.ProcessGroup, hidden_bytes: int):
-    """
-    Copy from DeepEP example usage in model inference prefilling.
-    https://github.com/deepseek-ai/DeepEP?tab=readme-ov-file#example-use-in-model-training-or-inference-prefilling
-    """
-
-    global _buffer_normal
-
-    num_nvl_bytes, num_rdma_bytes = 0, 0
-    for config in (
-        Buffer.get_dispatch_config(group.size()),
-        Buffer.get_combine_config(group.size()),
-    ):
-        num_nvl_bytes = max(
-            config.get_nvl_buffer_size_hint(hidden_bytes, group.size()), num_nvl_bytes
-        )
-        num_rdma_bytes = max(
-            config.get_rdma_buffer_size_hint(hidden_bytes, group.size()), num_rdma_bytes
-        )
-
-    if (
-        _buffer_normal is None
-        or _buffer_normal.group != group
-        or _buffer_normal.num_nvl_bytes < num_nvl_bytes
-        or _buffer_normal.num_rdma_bytes < num_rdma_bytes
-    ):
-        _buffer_normal = Buffer(group, num_nvl_bytes, num_rdma_bytes)
-    return _buffer_normal
+# def get_buffer_normal(group: dist.ProcessGroup, hidden_bytes: int):
+#     """
+#     Copy from DeepEP example usage in model inference prefilling.
+#     https://github.com/deepseek-ai/DeepEP?tab=readme-ov-file#example-use-in-model-training-or-inference-prefilling
+#     """
+#
+#     global _buffer_normal
+#
+#     num_nvl_bytes, num_rdma_bytes = 0, 0
+#     for config in (
+#         Buffer.get_dispatch_config(group.size()),
+#         Buffer.get_combine_config(group.size()),
+#     ):
+#         num_nvl_bytes = max(
+#             config.get_nvl_buffer_size_hint(hidden_bytes, group.size()), num_nvl_bytes
+#         )
+#         num_rdma_bytes = max(
+#             config.get_rdma_buffer_size_hint(hidden_bytes, group.size()), num_rdma_bytes
+#         )
+#
+#     if (
+#         _buffer_normal is None
+#         or _buffer_normal.group != group
+#         or _buffer_normal.num_nvl_bytes < num_nvl_bytes
+#         or _buffer_normal.num_rdma_bytes < num_rdma_bytes
+#     ):
+#         _buffer_normal = Buffer(group, num_nvl_bytes, num_rdma_bytes)
+#     return _buffer_normal
 
 
 def get_buffer_low_latency(
@@ -205,14 +205,14 @@ class DeepEPDispatcher:
 
         # `num_max_dispatch_tokens_per_rank` (the actual batch size in the decoding engine) should be less than 256
         # https://github.com/deepseek-ai/DeepEP?tab=readme-ov-file#example-use-in-inference-decoding
-        self.num_max_dispatch_tokens_per_rank = 128
+        self.num_max_dispatch_tokens_per_rank = 128  # each DP maximum token number??
 
         if not use_deepep:
             raise ImportError(
                 "DeepEP is not installed. Please install DeepEP package from "
                 "https://github.com/deepseek-ai/deepep."
             )
-        self.buffer_normal = get_buffer_normal(
+        self.buffer_normal = get_buffer_normal(  # may not need ??
             self.group, self.hidden_size * self.params_bytes
         )
         self.buffer_low_latency = get_buffer_low_latency(

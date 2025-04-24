@@ -118,6 +118,7 @@ class EPMoE(torch.nn.Module):
 
 
     """
+    # reference to: https://doc.weixin.qq.com/doc/w3_AdkApwa6AMsCVMvscdmR9apsjd581
 
     def __init__(
         self,
@@ -808,6 +809,7 @@ class DeepEPMoE(EPMoE):
         custom_routing_function: Optional[Callable] = None,
         activation: str = "silu",
     ):
+        # totally reuse EPMoE directly
         super().__init__(
             num_experts,
             top_k,

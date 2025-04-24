@@ -177,7 +177,7 @@ class DeepseekV2MoE(nn.Module):
         self.gate = MoEGate(config=config, prefix=add_prefix("gate", prefix))
 
         MoEImpl = (
-            DeepEPMoE
+            DeepEPMoE  # DeepEP MoE but not merged
             if global_server_args_dict["enable_deepep_moe"]
             else (EPMoE if global_server_args_dict["enable_ep_moe"] else FusedMoE)
         )
@@ -219,7 +219,7 @@ class DeepseekV2MoE(nn.Module):
                     tp_size=1,
                 )
 
-        if global_server_args_dict["enable_deepep_moe"]:
+        if global_server_args_dict["enable_deepep_moe"]:  # DeepEP initialization
             self.num_experts = config.n_routed_experts
             self.top_k = config.num_experts_per_tok
             self.renormalize = config.norm_topk_prob
@@ -247,7 +247,7 @@ class DeepseekV2MoE(nn.Module):
         if not global_server_args_dict["enable_deepep_moe"]:
             return self.forward_normal(hidden_states)
         else:
-            return self.forward_deepep(hidden_states, forward_mode)
+            return self.forward_deepep(hidden_states, forward_mode)  # using DeepEP
 
     def forward_normal(self, hidden_states: torch.Tensor) -> torch.Tensor:
         num_tokens, hidden_dim = hidden_states.shape
@@ -1029,7 +1029,7 @@ class DeepseekV2DecoderLayer(nn.Module):
             and layer_id >= config.first_k_dense_replace
             and layer_id % config.moe_layer_freq == 0
         ):
-            self.mlp = DeepseekV2MoE(
+            self.mlp = DeepseekV2MoE(  # MoE
                 config=config,
                 quant_config=quant_config,
                 prefix=add_prefix("mlp", prefix),
@@ -1383,7 +1383,7 @@ class DeepseekV2ForCausalLM(nn.Module):
         torch.cuda.synchronize()
 
 
-class DeepseekV3ForCausalLM(DeepseekV2ForCausalLM):
+class DeepseekV3ForCausalLM(DeepseekV2ForCausalLM):  # directly use V2
     pass
 
 
